@@ -92,6 +92,27 @@ Each extractor ships a **stub mode** returning deterministic facts, so the whole
 pipeline runs offline (CI, demos) with no API keys. Real inference goes behind
 `Extractor._infer`.
 
+### Collection layer (upstream of extraction)
+
+`collect/` is the *acquisition* stage that feeds the extractor layer. A
+`Collector` fetches posts/articles for an event's `CollectionQuery` and yields
+normalized `CollectedItem`s; `item_to_asset` turns each into a TEXT `Asset`
+(carrying platform/author/posted-at/link in `properties`) that flows through the
+same `Catalog.ingest`. So acquisition is decoupled from extraction — add a source
+without touching anything downstream.
+
+| Source | Access | Status |
+|---|---|---|
+| news RSS/Atom (CNN/BBC/local) | free | ✅ live |
+| GDELT DOC 2.0 (global news index) | free | ✅ live |
+| X (Twitter) API v2 | `$X_BEARER_TOKEN` (paid) | ✅ live behind token; stub otherwise |
+| Weibo API | `$WEIBO_ACCESS_TOKEN` | ✅ live behind token; stub otherwise |
+
+We collect/store only the **snippet the source syndicates** (post text, or an
+article's title+summary) + the link — never a scraped article body (copyright/
+ToS). `CollectionPipeline` dedups on source URL + content hash. On-demand via the
+`flood-collect` CLI (`python -m flood_catalog.collect`).
+
 ---
 
 ## 5. Storage on a budget: store what's yours, *link* what isn't
@@ -160,6 +181,7 @@ host. It is the seed of the production frontend.
 ```
 src/flood_catalog/
   models.py            # Event, FactRecord, Locator, provenance — the soft schema
+  collect/             # acquisition: RSS/GDELT/X/Weibo collectors + dedup pipeline + CLI
   ingest/router.py     # Modality -> Extractor dispatch
   extract/             # text + image + satellite extractors (stub + real), base class
                        #   satellite.py + geoutil.py: water mask -> flood polygons (geo extra)
