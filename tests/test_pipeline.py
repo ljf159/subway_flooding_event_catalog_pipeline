@@ -78,7 +78,7 @@ def test_content_addressing_is_stable(catalog):
 def test_router_rejects_unregistered_modality():
     router = ExtractionRouter(stub=True)
     assert router.supports(Modality.TEXT)
-    assert not router.supports(Modality.SATELLITE)
+    assert not router.supports(Modality.VIDEO)  # VIDEO has no extractor yet
 
 
 def test_metrics_roundtrip(catalog):

@@ -36,6 +36,7 @@ build/
   site/        # static website: event pages + provenance viewer (open index.html)
   data/        # events.parquet, assets.parquet, facts.parquet (+ DuckDB dump)
   graph/       # nodes.json, edges.json, load.cypher  (Neo4j/Kuzu-loadable)
+  stac/        # catalog.json + items/  (STAC 1.0.0, for satellite scenes)
 ```
 
 Query the metrics tier with plain SQL (DuckDB):
@@ -66,8 +67,8 @@ Catalog.ingest → stores to:
 |---|---|
 | `src/flood_catalog/models.py` | Event / FactRecord / Locator — the soft schema + provenance |
 | `src/flood_catalog/ingest/` | `ExtractionRouter` (modality → extractor) |
-| `src/flood_catalog/extract/` | text + image extractors (stub mode), base class |
-| `src/flood_catalog/store/` | blobs (Tier 1), graph + tables (Tier 2) |
+| `src/flood_catalog/extract/` | text + image + satellite extractors (stub + real), base class |
+| `src/flood_catalog/store/` | blobs (Tier 1), graph + tables + STAC (Tier 2) |
 | `src/flood_catalog/site/` | static-site builder + provenance viewer (Tier 3) |
 | `examples/ida_2021/` | worked example + source files |
 | `schema/ontology.md` | the controlled vocabulary you grow as you discover it |
@@ -92,6 +93,14 @@ python examples/ida_2021/run_demo.py --real   # text via Claude; SVG stays stub
   returns claims each with a **pixel bbox**; we read the image's true dimensions
   (`extract/imageutil.py`) so boxes are in real pixels. Needs a raster format
   (PNG/JPEG/GIF/WebP) — the demo's placeholder is an SVG, so it stays on the stub.
+- **Satellite** (`extract/satellite.py`, the `geo` extra): a flood/water raster
+  (COG) is opened with rasterio; a water mask (NDWI on optical bands, or a
+  thresholded flood product) is vectorized into polygons (`extract/geoutil.py`),
+  emitting one `observed_flood_extent` fact per polygon with the lon/lat
+  **GeoJSON polygon** as its GEO locator. The imagery is **not re-hosted** — it's
+  catalogued via **STAC** (`store/stac.py` → `build/stac/`, the imagery linked by
+  the item's `source` href) while the catalog keeps the derived flood extents.
+  The static viewer draws geo facts as an offline SVG polygon.
 
 Default model is `claude-opus-4-8`; pass `model=` to `ExtractionRouter` /
 extractor to use a cheaper one (e.g. `claude-haiku-4-5`) at scale. To add a

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from flood_catalog.extract.base import Extractor
 from flood_catalog.extract.image import ImageExtractor
+from flood_catalog.extract.satellite import SatelliteExtractor
 from flood_catalog.extract.text import TextExtractor
 from flood_catalog.models import Asset, FactRecord, Modality
 
@@ -20,7 +21,7 @@ class ExtractionRouter:
         self._registry: dict[Modality, Extractor] = {
             Modality.TEXT: TextExtractor(stub=stub, model=model),
             Modality.IMAGE: ImageExtractor(stub=stub, model=model),
-            # TODO: SATELLITE -> SatelliteExtractor (Sentinel-1/2 flood-extent + STAC)
+            Modality.SATELLITE: SatelliteExtractor(stub=stub, model=model),
             # TODO: VIDEO     -> VideoExtractor (yt-dlp + Whisper + keyframe VLM)
             # TODO: AUDIO     -> AudioExtractor (Whisper -> LLM)
             # TODO: TABULAR   -> TabularExtractor (schema mapping + LLM for messy fields)

@@ -43,6 +43,7 @@ Use `type:slug`, lowercase, hyphenated. Resolve to external IDs where possible.
 | `asset:` | `asset:turnstiles` | facility/equipment |
 | `people:` | `people:passengers` | affected population |
 | `hazard:` | `hazard:rainfall` | driving hazard |
+| `area:` | `area:flooded` | observed geographic region (satellite) |
 
 ## Predicates seen so far (promote/curate here)
 
@@ -57,6 +58,7 @@ claim (don't bake units into the predicate).
 - `flooded_locations_count` (unit: `locations`)
 - `visible_water_depth` · `submerged` · `present_in_floodwater` (unit: `persons`)
 - `rescue_action` · `evacuation`
+- `observed_flood_extent` (unit: `km2`, GEO locator = flood polygon; from satellite)
 
 **Recovery**
 - `water_removed` (unit: `million gallons`)
@@ -68,8 +70,8 @@ claim (don't bake units into the predicate).
 
 ## Units in use
 
-`m` · `mm` · `hours` · `days` · `locations` · `persons` · `million gallons` ·
-`million USD` · `USD`
+`m` · `mm` · `km2` · `hours` · `days` · `locations` · `persons` ·
+`million gallons` · `million USD` · `USD`
 
 ---
 
