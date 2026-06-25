@@ -12,10 +12,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from flood_catalog.ingest.router import ExtractionRouter
-from flood_catalog.models import Asset, Event, FactRecord
+from flood_catalog.models import Asset, Event, FactRecord, Modality
 from flood_catalog.site.build import build_site
 from flood_catalog.store.blobs import LocalBlobStore
 from flood_catalog.store.graph import GraphStore
+from flood_catalog.store.stac import StacStore
 from flood_catalog.store.tables import MetricsStore
 
 
@@ -26,6 +27,7 @@ class Catalog:
     blobs: LocalBlobStore
     metrics: MetricsStore = field(default_factory=MetricsStore)
     graph: GraphStore = field(default_factory=GraphStore)
+    stac: StacStore = field(default_factory=StacStore)
     router: ExtractionRouter = field(default_factory=lambda: ExtractionRouter(stub=True))
 
     events: dict[str, Event] = field(default_factory=dict)
@@ -57,6 +59,10 @@ class Catalog:
         self.facts.extend(new_facts)
         self.metrics.upsert_facts(new_facts)
         self.graph.add_facts(new_facts)
+
+        # Satellite/geolocated scenes also get a STAC item (geo catalog tier).
+        if asset.modality is Modality.SATELLITE or asset.geometry is not None:
+            self.stac.add_item(asset, event_id, new_facts)
         return new_facts
 
     # -- export ------------------------------------------------------------ #
@@ -67,7 +73,7 @@ class Catalog:
         target can safely be separate from (or a parent of) the object store.
         """
         out = Path(out_dir)
-        for sub in ("data", "graph", "site"):
+        for sub in ("data", "graph", "site", "stac"):
             d = out / sub
             if d.exists():
                 shutil.rmtree(d)
@@ -79,6 +85,8 @@ class Catalog:
             f"EXPORT DATABASE '{out / 'data' / 'duckdb_dump'}' (FORMAT PARQUET)"
         )
         self.graph.export_json(out / "graph")
+        if self.stac.items:
+            self.stac.export_json(out / "stac")
 
         # Static site (Tier 3) -- inlines data, copies rehosted assets
         build_site(

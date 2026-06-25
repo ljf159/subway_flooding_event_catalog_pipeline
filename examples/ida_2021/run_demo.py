@@ -78,9 +78,34 @@ def main() -> None:
     if real:
         print("Real mode: extracting text with Claude; image stays on stub (SVG).")
 
+    # A satellite scene: imagery is link-only (rehosted=False) -- the catalog
+    # points to the public archive and stores derived flood-extent facts + a STAC
+    # item, not the raster. Stub extractor emits flood polygons (GEO locators).
+    sat_asset = object_store.put_file(
+        SOURCES / "ida_s2_scene.json",
+        Modality.SATELLITE,
+        title="Sentinel-2 L2A scene over NYC (Ida)",
+        original_url="https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a",
+        publisher="ESA / Microsoft Planetary Computer",
+        license="CC-BY-4.0",
+        rehosted=False,
+    )
+    sat_asset.bbox = [-74.05, 40.68, -73.78, 40.82]
+    sat_asset.geometry = {
+        "type": "Polygon",
+        "coordinates": [[
+            [-74.05, 40.68], [-73.78, 40.68], [-73.78, 40.82],
+            [-74.05, 40.82], [-74.05, 40.68],
+        ]],
+    }
+    sat_asset.datetime = _dt.datetime(2021, 9, 2, 15, 40, tzinfo=_dt.timezone.utc)
+    sat_asset.properties = {"platform": "sentinel-2", "collection": "sentinel-2-l2a"}
+
     f1 = catalog.ingest(text_asset, "ida-2021-nyc", router=text_router)
     f2 = catalog.ingest(image_asset, "ida-2021-nyc", router=image_router)
-    print(f"Extracted {len(f1)} facts from text, {len(f2)} from image.")
+    f3 = catalog.ingest(sat_asset, "ida-2021-nyc", router=image_router)
+    print(f"Extracted {len(f1)} facts from text, {len(f2)} from image, "
+          f"{len(f3)} from satellite.")
 
     out = catalog.export(BUILD)
 
@@ -94,6 +119,7 @@ def main() -> None:
 
     print(f"\nBuild written to: {out}")
     print(f"Open in a browser: {out / 'site' / 'index.html'}")
+    print(f"STAC catalog:      {out / 'stac' / 'catalog.json'}")
 
 
 if __name__ == "__main__":

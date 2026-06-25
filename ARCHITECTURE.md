@@ -82,7 +82,7 @@ registry line; nothing downstream changes.
 |---|---|---|---|
 | text / PDF / news | Docling → Claude (`messages.parse` + Pydantic) | text_span | ✅ stub **+ Claude wired** |
 | image / ground photo | Claude vision (base64) → claims with pixel bbox | bbox | ✅ stub **+ Claude wired** |
-| satellite / SAR | Sentinel-1/2 flood-extent models, GeoLLaVA; catalog via STAC | geo | 🔲 TODO |
+| satellite / SAR | rasterio water mask (NDWI/threshold) → flood polygons; catalog via STAC | geo | ✅ stub **+ real wired** |
 | video | yt-dlp → Whisper + keyframe VLM | time_range / bbox | 🔲 TODO |
 | audio | Whisper → LLM | time_range | 🔲 TODO |
 | tabular / API | schema mapping + LLM for messy fields | row | 🔲 TODO |
@@ -161,12 +161,14 @@ host. It is the seed of the production frontend.
 src/flood_catalog/
   models.py            # Event, FactRecord, Locator, provenance — the soft schema
   ingest/router.py     # Modality -> Extractor dispatch
-  extract/             # text + image extractors (stub mode), base class
+  extract/             # text + image + satellite extractors (stub + real), base class
+                       #   satellite.py + geoutil.py: water mask -> flood polygons (geo extra)
   store/
     blobs.py           # Tier 1: content-addressed object store (S3-shaped)
     tables.py          # Tier 2: DuckDB metrics + Parquet export
     graph.py           # Tier 2: property graph -> nodes/edges JSON + Cypher (+optional Kuzu)
-  site/build.py        # Tier 3: static site + provenance viewer
+    stac.py            # Tier 2 (geo): STAC 1.0.0 catalog for satellite scenes
+  site/build.py        # Tier 3: static site + provenance viewer (text/image/geo)
   catalog.py           # orchestration: ingest -> extract -> store -> export
 examples/ida_2021/     # NYC Hurricane Ida worked example (runs offline)
 schema/ontology.md     # the evolving vocabulary you curate
@@ -181,7 +183,7 @@ Run `python examples/ida_2021/run_demo.py`, then open `build/site/index.html`.
 
 1. **Now:** schema + provenance + text/image stubs + static viewer + Ida example. ✅
 2. **Wire real models:** Claude-backed `_infer` for text (Docling+LLM) and image (VLM). ✅
-3. **Add modalities:** satellite (STAC + flood-extent), video (Whisper+VLM), tabular.
+3. **Add modalities:** satellite (STAC + flood-extent) ✅; video (Whisper+VLM), tabular — next.
 4. **Entity resolution:** dedupe stations/agencies; link to Wikidata/GeoNames/GTFS.
 5. **Production frontend:** Next.js + MapLibre + DuckDB-WASM + Meilisearch over R2.
 6. **Governance:** curation workflow (human verification), CC-BY release + Zenodo DOI.

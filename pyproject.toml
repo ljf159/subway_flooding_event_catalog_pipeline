@@ -18,7 +18,7 @@ dependencies = [
 # Real model + parsing backends (the stub demo needs none of these).
 extract = ["anthropic>=0.40", "docling", "pillow"]   # Claude (text+vision) + PDF parsing + image dims
 graph = ["kuzu"]                                  # embedded property graph
-geo = ["geopandas", "rasterio", "pystac"]         # satellite/GIS + STAC
+geo = ["rasterio", "shapely", "pyproj", "numpy", "pystac"]  # satellite flood extent + STAC
 dev = ["pytest"]
 
 [tool.setuptools.packages.find]

@@ -158,6 +158,8 @@ border-radius:10px;padding:12px;min-height:200px}
 box-shadow:0 0 0 9999px rgba(0,0,0,.45);border-radius:2px}
 .txt{white-space:pre-wrap;font-size:14px}.txt mark{background:var(--hi);color:#000;padding:0 2px}
 .kv{color:var(--muted);font-size:12px}
+.geo svg{background:#0c141c;border-radius:6px;max-width:100%;height:auto}
+.geo path{fill:rgba(70,179,255,.30);stroke:var(--hi);stroke-width:1.5;vector-effect:non-scaling-stroke}
 </style>"""
 
 
@@ -229,8 +231,29 @@ function showSource(f, div){
       : esc(t);
     v.innerHTML = cite + `<div class="txt">${body}</div>`;
     const mk=v.querySelector('mark'); if(mk) mk.scrollIntoView({block:'center'});
+  } else if(loc.selector_type==='geo' && loc.geo){
+    renderGeo(v, cite, loc.geo);
   } else {
     v.innerHTML = cite + `<p class="muted">${loc.quote||'(no inline preview for this source type)'}</p>`;
   }
+}
+
+// Render a GeoJSON Polygon/MultiPolygon as an offline SVG (no basemap/network).
+function renderGeo(v, cite, geom){
+  const rings=[];
+  (function walk(c){ if(c&&typeof c[0][0]==='number') rings.push(c);
+    else c.forEach(walk); })(geom.coordinates);
+  let xmin=1e9,ymin=1e9,xmax=-1e9,ymax=-1e9;
+  rings.forEach(r=>r.forEach(([x,y])=>{xmin=Math.min(xmin,x);ymin=Math.min(ymin,y);
+    xmax=Math.max(xmax,x);ymax=Math.max(ymax,y);}));
+  const W=320,H=240,pad=12, sx=(W-2*pad)/((xmax-xmin)||1), sy=(H-2*pad)/((ymax-ymin)||1);
+  const s=Math.min(sx,sy);
+  const px=x=>pad+(x-xmin)*s, py=y=>H-pad-(y-ymin)*s;  // flip lat (north up)
+  const paths=rings.map(r=>'M'+r.map(([x,y])=>px(x).toFixed(1)+','+py(y).toFixed(1)).join('L')+'Z').join(' ');
+  v.innerHTML = cite +
+    `<div class="geo"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`+
+    `<path d="${paths}"/></svg></div>`+
+    `<p class="kv">flood extent · approx ${xmin.toFixed(3)},${ymin.toFixed(3)} → `+
+    `${xmax.toFixed(3)},${ymax.toFixed(3)} (lon/lat) · catalogued via STAC</p>`;
 }
 """
