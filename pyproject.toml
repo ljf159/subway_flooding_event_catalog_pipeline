@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flood-catalog"
+version = "0.1.0"
+description = "Multi-modal, provenance-first pipeline for an open subway flooding event catalog"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "pydantic>=2",
+    "duckdb>=1.0",
+]
+
+[project.optional-dependencies]
+# Real model + parsing backends (the stub demo needs none of these).
+extract = ["docling", "instructor", "openai"]   # text/PDF + structured LLM output
+graph = ["kuzu"]                                  # embedded property graph
+geo = ["geopandas", "rasterio", "pystac"]         # satellite/GIS + STAC
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

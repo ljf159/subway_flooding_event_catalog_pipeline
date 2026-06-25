@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">
+  <!-- Illustrative placeholder "flooded station" image for the catalog demo.
+       Regions roughly align with the bounding boxes the stub VLM emits. -->
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2630"/><stop offset="1" stop-color="#0e151c"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a4a2e" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#3a2f1c"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="640" fill="url(#wall)"/>
+  <!-- tiled wall -->
+  <g stroke="#27323d" stroke-width="2">
+    <line x1="0" y1="120" x2="960" y2="120"/><line x1="0" y1="220" x2="960" y2="220"/>
+    <line x1="240" y1="0" x2="240" y2="300"/><line x1="480" y1="0" x2="480" y2="300"/>
+    <line x1="720" y1="0" x2="720" y2="300"/>
+  </g>
+  <text x="32" y="80" fill="#9fb2c4" font-family="system-ui" font-size="34"
+        letter-spacing="3">14 ST — STATION</text>
+  <!-- platform edge -->
+  <rect x="0" y="300" width="960" height="14" fill="#384552"/>
+  <!-- floodwater -->
+  <rect x="0" y="314" width="960" height="326" fill="url(#water)"/>
+  <g fill="#6b5836" opacity="0.5">
+    <ellipse cx="300" cy="430" rx="150" ry="10"/>
+    <ellipse cx="650" cy="500" rx="180" ry="12"/>
+  </g>
+  <!-- turnstiles (left) -->
+  <g fill="#46525e">
+    <rect x="70" y="330" width="40" height="120"/><rect x="150" y="330" width="40" height="120"/>
+    <rect x="230" y="330" width="40" height="120"/>
+  </g>
+  <!-- passenger figures (right), partly in water -->
+  <g fill="#c9d4de">
+    <circle cx="660" cy="330" r="22"/><rect x="640" y="352" width="40" height="120" rx="14"/>
+    <circle cx="740" cy="345" r="20"/><rect x="722" y="365" width="36" height="110" rx="13"/>
+  </g>
+</svg>
