@@ -82,7 +82,7 @@ registry line; nothing downstream changes.
 |---|---|---|---|
 | text / PDF / news | Docling → Claude (`messages.parse` + Pydantic) | text_span | ✅ stub **+ Claude wired** |
 | image / ground photo | Claude vision (base64) → claims with pixel bbox | bbox | ✅ stub **+ Claude wired** |
-| satellite / SAR | Sentinel-1/2 flood-extent models, GeoLLaVA; catalog via STAC | geo | 🔲 TODO |
+| satellite / SAR | rasterio water mask (NDWI/threshold) → flood polygons; catalog via STAC | geo | ✅ stub **+ real wired** |
 | video | yt-dlp → Whisper + keyframe VLM | time_range / bbox | 🔲 TODO |
 | audio | Whisper → LLM | time_range | 🔲 TODO |
 | tabular / API | schema mapping + LLM for messy fields | row | 🔲 TODO |
@@ -91,6 +91,27 @@ registry line; nothing downstream changes.
 Each extractor ships a **stub mode** returning deterministic facts, so the whole
 pipeline runs offline (CI, demos) with no API keys. Real inference goes behind
 `Extractor._infer`.
+
+### Collection layer (upstream of extraction)
+
+`collect/` is the *acquisition* stage that feeds the extractor layer. A
+`Collector` fetches posts/articles for an event's `CollectionQuery` and yields
+normalized `CollectedItem`s; `item_to_asset` turns each into a TEXT `Asset`
+(carrying platform/author/posted-at/link in `properties`) that flows through the
+same `Catalog.ingest`. So acquisition is decoupled from extraction — add a source
+without touching anything downstream.
+
+| Source | Access | Status |
+|---|---|---|
+| news RSS/Atom (CNN/BBC/local) | free | ✅ live |
+| GDELT DOC 2.0 (global news index) | free | ✅ live |
+| X (Twitter) API v2 | `$X_BEARER_TOKEN` (paid) | ✅ live behind token; stub otherwise |
+| Weibo API | `$WEIBO_ACCESS_TOKEN` | ✅ live behind token; stub otherwise |
+
+We collect/store only the **snippet the source syndicates** (post text, or an
+article's title+summary) + the link — never a scraped article body (copyright/
+ToS). `CollectionPipeline` dedups on source URL + content hash. On-demand via the
+`flood-collect` CLI (`python -m flood_catalog.collect`).
 
 ---
 
@@ -160,13 +181,16 @@ host. It is the seed of the production frontend.
 ```
 src/flood_catalog/
   models.py            # Event, FactRecord, Locator, provenance — the soft schema
+  collect/             # acquisition: RSS/GDELT/X/Weibo collectors + dedup pipeline + CLI
   ingest/router.py     # Modality -> Extractor dispatch
-  extract/             # text + image extractors (stub mode), base class
+  extract/             # text + image + satellite extractors (stub + real), base class
+                       #   satellite.py + geoutil.py: water mask -> flood polygons (geo extra)
   store/
     blobs.py           # Tier 1: content-addressed object store (S3-shaped)
     tables.py          # Tier 2: DuckDB metrics + Parquet export
     graph.py           # Tier 2: property graph -> nodes/edges JSON + Cypher (+optional Kuzu)
-  site/build.py        # Tier 3: static site + provenance viewer
+    stac.py            # Tier 2 (geo): STAC 1.0.0 catalog for satellite scenes
+  site/build.py        # Tier 3: static site + provenance viewer (text/image/geo)
   catalog.py           # orchestration: ingest -> extract -> store -> export
 examples/ida_2021/     # NYC Hurricane Ida worked example (runs offline)
 schema/ontology.md     # the evolving vocabulary you curate
@@ -181,7 +205,7 @@ Run `python examples/ida_2021/run_demo.py`, then open `build/site/index.html`.
 
 1. **Now:** schema + provenance + text/image stubs + static viewer + Ida example. ✅
 2. **Wire real models:** Claude-backed `_infer` for text (Docling+LLM) and image (VLM). ✅
-3. **Add modalities:** satellite (STAC + flood-extent), video (Whisper+VLM), tabular.
+3. **Add modalities:** satellite (STAC + flood-extent) ✅; video (Whisper+VLM), tabular — next.
 4. **Entity resolution:** dedupe stations/agencies; link to Wikidata/GeoNames/GTFS.
 5. **Production frontend:** Next.js + MapLibre + DuckDB-WASM + Meilisearch over R2.
 6. **Governance:** curation workflow (human verification), CC-BY release + Zenodo DOI.

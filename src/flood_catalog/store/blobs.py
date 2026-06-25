@@ -89,6 +89,49 @@ class LocalBlobStore:
             retrieved_at=_dt.datetime.now(_dt.timezone.utc),
         )
 
+    def put_text(
+        self,
+        text: str,
+        modality: Modality = Modality.TEXT,
+        *,
+        media_type: str = "text/plain",
+        original_url: Optional[str] = None,
+        title: Optional[str] = None,
+        publisher: Optional[str] = None,
+        license: Optional[str] = None,
+        properties: Optional[dict] = None,
+        datetime: Optional[_dt.datetime] = None,
+    ) -> Asset:
+        """Content-address and store an in-memory text snippet (e.g. a social
+        post or a news headline+summary) as a TEXT asset.
+
+        This is the collection path: we store the *snippet the source provided*
+        (post text / RSS summary), set ``original_url`` to the full item, and
+        leave the full article body un-rehosted. Same bytes -> same id (dedup).
+        """
+        data = text.encode("utf-8")
+        digest = hashlib.sha256(data).hexdigest()
+        asset_id = f"sha256:{digest}"
+        dest = Path(self.uri(asset_id, ".txt"))
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if not dest.exists():
+            dest.write_bytes(data)
+        return Asset(
+            asset_id=asset_id,
+            modality=modality,
+            media_type=media_type,
+            uri=str(dest),
+            original_url=original_url,
+            title=title,
+            publisher=publisher,
+            license=license,
+            rehosted=True,
+            bytes=len(data),
+            retrieved_at=_dt.datetime.now(_dt.timezone.utc),
+            datetime=datetime,
+            properties=properties or {},
+        )
+
     def local_path(self, asset: Asset) -> Optional[Path]:
         """Return the on-disk path of a rehosted asset (for export/copy)."""
         if not asset.rehosted:

@@ -121,6 +121,13 @@ class Asset(BaseModel):
     rehosted: bool = True                # False => we only link, don't store bytes
     bytes: Optional[int] = None
     retrieved_at: Optional[_dt.datetime] = None
+    # Spatiotemporal metadata (mainly for satellite/geo assets -> STAC items).
+    bbox: Optional[list[float]] = None       # [west, south, east, north] (lon/lat)
+    geometry: Optional[dict[str, Any]] = None  # GeoJSON footprint of the scene
+    datetime: Optional[_dt.datetime] = None
+    start_datetime: Optional[_dt.datetime] = None
+    end_datetime: Optional[_dt.datetime] = None
+    properties: dict[str, Any] = Field(default_factory=dict)  # extra STAC props
 
 
 class Extraction(BaseModel):

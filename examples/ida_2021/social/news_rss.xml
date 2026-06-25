@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Illustrative City Desk — RSS (demo fixture)</title>
+    <link>https://example-news.org/</link>
+    <description>Synthetic feed for the flood-catalog collection demo.</description>
+    <item>
+      <title>MTA suspends subway service as Ida remnants flood NYC stations</title>
+      <link>https://example-news.org/2021/09/01/mta-ida-subway-flooding</link>
+      <description>The MTA suspended service across most subway lines overnight as
+        record rainfall from the remnants of Hurricane Ida flooded stations and
+        tunnels in dozens of locations.</description>
+      <pubDate>Wed, 01 Sep 2021 23:50:00 GMT</pubDate>
+      <dc:creator>City Desk</dc:creator>
+    </item>
+    <item>
+      <title>Crews pump tens of millions of gallons from flooded subway after Ida</title>
+      <link>https://example-news.org/2021/09/03/subway-recovery-ida</link>
+      <description>In the days after the storm, crews removed roughly 75 million
+        gallons of water from the subway system; the MTA estimated infrastructure
+        damage at about $128 million.</description>
+      <pubDate>Fri, 03 Sep 2021 14:10:00 GMT</pubDate>
+      <dc:creator>City Desk</dc:creator>
+    </item>
+  </channel>
+</rss>

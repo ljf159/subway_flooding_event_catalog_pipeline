@@ -1,0 +1,20 @@
+{
+  "articles": [
+    {
+      "url": "https://example-localpaper.org/ida/queens-subway-flooding",
+      "title": "Queens straphangers wade through flooded subway as Ida hits NYC",
+      "seendate": "20210902T031500Z",
+      "domain": "example-localpaper.org",
+      "language": "English",
+      "socialimage": "https://example-localpaper.org/img/flooded-platform.jpg"
+    },
+    {
+      "url": "https://example-globalwire.example/ida-new-york-transit",
+      "title": "New York subway flooding from Ida prompts first-ever flash flood emergency",
+      "seendate": "20210902T011000Z",
+      "domain": "example-globalwire.example",
+      "language": "English",
+      "socialimage": ""
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "note": "Metadata stub for a public Sentinel-2 L2A scene over New York City around 2021-09-02 (remnants of Hurricane Ida). The imagery itself is NOT re-hosted by this catalog -- it is linked via the asset's original_url and the STAC item's 'source' asset href to a public archive (e.g. Microsoft Planetary Computer / AWS Open Data). This small sidecar is what the catalog content-addresses; the catalog stores the derived flood-extent facts, not the raster.",
+  "platform": "sentinel-2",
+  "collection": "sentinel-2-l2a"
+}

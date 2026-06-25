@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "id": "1433000000000000001",
+      "text": "Water pouring down the stairs at my subway station — MTA says service is suspended. Stay safe out there. #Ida #NYC",
+      "created_at": "2021-09-02T02:15:00.000Z",
+      "author_id": "111",
+      "lang": "en"
+    },
+    {
+      "id": "1433000000000000002",
+      "text": "The subway flooding from Ida is unreal. 46 locations underwater according to the MTA.",
+      "created_at": "2021-09-02T03:40:00.000Z",
+      "author_id": "222",
+      "lang": "en"
+    }
+  ],
+  "includes": {
+    "users": [
+      {"id": "111", "username": "demo_rider"},
+      {"id": "222", "username": "demo_observer"}
+    ]
+  }
+}
