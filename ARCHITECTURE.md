@@ -80,8 +80,8 @@ registry line; nothing downstream changes.
 
 | Modality | Production extractor | Locator | Status in repo |
 |---|---|---|---|
-| text / PDF / news | Docling/Unstructured → LLM (Claude / Qwen3) + Instructor | text_span | ✅ stub implemented |
-| image / ground photo | VLM (Claude/GPT-4o, or Qwen2.5-VL / Pixtral) + Grounding DINO | bbox | ✅ stub implemented |
+| text / PDF / news | Docling → Claude (`messages.parse` + Pydantic) | text_span | ✅ stub **+ Claude wired** |
+| image / ground photo | Claude vision (base64) → claims with pixel bbox | bbox | ✅ stub **+ Claude wired** |
 | satellite / SAR | Sentinel-1/2 flood-extent models, GeoLLaVA; catalog via STAC | geo | 🔲 TODO |
 | video | yt-dlp → Whisper + keyframe VLM | time_range / bbox | 🔲 TODO |
 | audio | Whisper → LLM | time_range | 🔲 TODO |
@@ -180,7 +180,7 @@ Run `python examples/ida_2021/run_demo.py`, then open `build/site/index.html`.
 ## 9. Roadmap
 
 1. **Now:** schema + provenance + text/image stubs + static viewer + Ida example. ✅
-2. **Wire real models:** implement `_infer` for text (Docling+LLM) and image (VLM).
+2. **Wire real models:** Claude-backed `_infer` for text (Docling+LLM) and image (VLM). ✅
 3. **Add modalities:** satellite (STAC + flood-extent), video (Whisper+VLM), tabular.
 4. **Entity resolution:** dedupe stations/agencies; link to Wikidata/GeoNames/GTFS.
 5. **Production frontend:** Next.js + MapLibre + DuckDB-WASM + Meilisearch over R2.

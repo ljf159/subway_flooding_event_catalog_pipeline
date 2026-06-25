@@ -72,13 +72,32 @@ Catalog.ingest → stores to:
 | `examples/ida_2021/` | worked example + source files |
 | `schema/ontology.md` | the controlled vocabulary you grow as you discover it |
 
-## Wiring real models
+## Real extraction (Claude)
 
-The extractors run in `stub=True` mode by default. To use real models, implement
-`Extractor._infer` (see `extract/base.py`) for your provider — parse the model's
-structured output into `FactRecord`s **and keep the locator** (span/bbox/timecode).
-Optional backends are declared as extras in `pyproject.toml`
-(`extract`, `graph`, `geo`).
+The extractors run offline in `stub=True` mode by default. Real extraction is
+**wired** for text and images using Claude (Anthropic SDK):
+
+```bash
+pip install -e '.[extract]'        # anthropic + docling + pillow
+export ANTHROPIC_API_KEY=sk-...
+python examples/ida_2021/run_demo.py --real   # text via Claude; SVG stays stub
+```
+
+- **Text** (`extract/text.py` → `extract/llm.py`): documents are parsed to text
+  with **Docling** (`extract/parse.py`, tables preserved), then Claude
+  (`messages.parse` + Pydantic) returns claims each carrying a **verbatim quote**.
+  We locate that quote in the source to compute the character span — the model is
+  never trusted for offsets.
+- **Images** (`extract/image.py`): a base64 image goes to Claude vision, which
+  returns claims each with a **pixel bbox**; we read the image's true dimensions
+  (`extract/imageutil.py`) so boxes are in real pixels. Needs a raster format
+  (PNG/JPEG/GIF/WebP) — the demo's placeholder is an SVG, so it stays on the stub.
+
+Default model is `claude-opus-4-8`; pass `model=` to `ExtractionRouter` /
+extractor to use a cheaper one (e.g. `claude-haiku-4-5`) at scale. To add a
+modality, implement `Extractor._infer` (see `extract/base.py`) and **keep the
+locator** (span / bbox / timecode). Optional backends are declared as extras in
+`pyproject.toml` (`extract`, `graph`, `geo`).
 
 ## Tests
 

@@ -38,13 +38,22 @@ class Catalog:
         self.metrics.upsert_event(event)
         self.graph.add_event(event)
 
-    def ingest(self, asset: Asset, event_id: str) -> list[FactRecord]:
-        """Store the asset, run the right extractor, persist resulting facts."""
+    def ingest(
+        self,
+        asset: Asset,
+        event_id: str,
+        router: ExtractionRouter | None = None,
+    ) -> list[FactRecord]:
+        """Store the asset, run the right extractor, persist resulting facts.
+
+        Pass ``router`` to override the catalog's default for this one asset
+        (e.g. run real extraction on a document but stub on a placeholder image).
+        """
         self.assets[asset.asset_id] = asset
         self.metrics.upsert_asset(asset)
         self.graph.add_asset(asset)
 
-        new_facts = self.router.extract(asset, event_id)
+        new_facts = (router or self.router).extract(asset, event_id)
         self.facts.extend(new_facts)
         self.metrics.upsert_facts(new_facts)
         self.graph.add_facts(new_facts)

@@ -33,11 +33,15 @@ class Extractor(abc.ABC):
 
     #: PROV-O activity type recorded on every fact this extractor emits.
     method: Method = Method.RULE
-    #: Identifier of the underlying model (override in subclasses).
+    #: Label recorded in provenance when running in stub mode.
     model: str = "stub"
+    #: Default model used for real inference (override per subclass if needed).
+    real_model: str = "claude-opus-4-8"
 
-    def __init__(self, stub: bool = True) -> None:
+    def __init__(self, stub: bool = True, model: str | None = None) -> None:
         self.stub = stub
+        #: Model id used for real inference (ignored in stub mode).
+        self.model_id = model or self.real_model
 
     # -- public API -------------------------------------------------------- #
     def extract(self, asset: Asset, event_id: str) -> list[FactRecord]:
@@ -50,9 +54,9 @@ class Extractor(abc.ABC):
     def _provenance(self, confidence: float = 1.0) -> Extraction:
         return Extraction(
             method=self.method,
-            model=self.model,
+            model=self.model if self.stub else self.model_id,
             model_version="stub" if self.stub else None,
-            confidence=confidence,
+            confidence=max(0.0, min(1.0, confidence)),
         )
 
     # -- to be implemented by subclasses ---------------------------------- #
