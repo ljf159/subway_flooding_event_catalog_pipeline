@@ -15,11 +15,11 @@ from flood_catalog.models import Asset, FactRecord, Modality
 class ExtractionRouter:
     """Maps :class:`Modality` -> :class:`Extractor` instance."""
 
-    def __init__(self, stub: bool = True) -> None:
+    def __init__(self, stub: bool = True, model: str | None = None) -> None:
         self.stub = stub
         self._registry: dict[Modality, Extractor] = {
-            Modality.TEXT: TextExtractor(stub=stub),
-            Modality.IMAGE: ImageExtractor(stub=stub),
+            Modality.TEXT: TextExtractor(stub=stub, model=model),
+            Modality.IMAGE: ImageExtractor(stub=stub, model=model),
             # TODO: SATELLITE -> SatelliteExtractor (Sentinel-1/2 flood-extent + STAC)
             # TODO: VIDEO     -> VideoExtractor (yt-dlp + Whisper + keyframe VLM)
             # TODO: AUDIO     -> AudioExtractor (Whisper -> LLM)

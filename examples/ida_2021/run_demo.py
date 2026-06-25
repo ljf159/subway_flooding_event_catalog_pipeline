@@ -11,9 +11,11 @@ highlighted -- the provenance loop.
 from __future__ import annotations
 
 import datetime as _dt
+import sys
 from pathlib import Path
 
 from flood_catalog.catalog import Catalog
+from flood_catalog.ingest.router import ExtractionRouter
 from flood_catalog.models import Event, Modality
 from flood_catalog.store.blobs import LocalBlobStore
 from flood_catalog.store.tables import MetricsStore
@@ -66,8 +68,18 @@ def main() -> None:
         license="illustrative-demo-image",
     )
 
-    f1 = catalog.ingest(text_asset, "ida-2021-nyc")
-    f2 = catalog.ingest(image_asset, "ida-2021-nyc")
+    # Default: fully offline stub extractors. Pass --real to run text extraction
+    # through Claude (needs `pip install -e '.[extract]'` + ANTHROPIC_API_KEY).
+    # The placeholder station image is an SVG, which the vision API doesn't take,
+    # so it stays on the stub extractor either way.
+    real = "--real" in sys.argv
+    text_router = ExtractionRouter(stub=not real)
+    image_router = ExtractionRouter(stub=True)
+    if real:
+        print("Real mode: extracting text with Claude; image stays on stub (SVG).")
+
+    f1 = catalog.ingest(text_asset, "ida-2021-nyc", router=text_router)
+    f2 = catalog.ingest(image_asset, "ida-2021-nyc", router=image_router)
     print(f"Extracted {len(f1)} facts from text, {len(f2)} from image.")
 
     out = catalog.export(BUILD)

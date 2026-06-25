@@ -88,3 +88,43 @@ class ImageExtractor(Extractor):
                 )
             )
         return facts
+
+    # -- real model path --------------------------------------------------- #
+    def _infer(self, asset: Asset, event_id: str) -> list[FactRecord]:
+        from pathlib import Path
+
+        from flood_catalog.extract import llm
+        from flood_catalog.extract.imageutil import image_size
+
+        path = Path(asset.uri)
+        width, height = image_size(path)
+        claims = llm.extract_image(
+            path.read_bytes(), asset.media_type, width, height, model=self.model_id
+        )
+        return self._facts_from_claims(asset, event_id, claims)
+
+    def _facts_from_claims(self, asset, event_id, claims) -> list[FactRecord]:
+        """Turn model claims into FactRecords, keeping each pixel bbox as the
+        source locator (provenance)."""
+        facts: list[FactRecord] = []
+        for i, c in enumerate(claims):
+            facts.append(
+                FactRecord(
+                    fact_id=make_fact_id(event_id, asset.asset_id, c.predicate, i),
+                    event_id=event_id,
+                    phase=c.phase,
+                    claim=Claim(
+                        subject=c.subject, predicate=c.predicate,
+                        value=c.value, unit=c.unit,
+                    ),
+                    source=SourceRef(
+                        asset_id=asset.asset_id,
+                        locator=Locator(
+                            selector_type=SelectorType.BBOX, bbox=list(c.bbox),
+                        ),
+                    ),
+                    extraction=self._provenance(confidence=c.confidence),
+                    tags=list(c.tags),
+                )
+            )
+        return facts

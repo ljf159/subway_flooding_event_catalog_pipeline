@@ -142,3 +142,46 @@ class TextExtractor(Extractor):
                 )
             )
         return facts
+
+    # -- real model path --------------------------------------------------- #
+    def _infer(self, asset: Asset, event_id: str) -> list[FactRecord]:
+        from flood_catalog.extract import llm, parse
+
+        text = parse.parse_to_text(asset.uri)
+        claims = llm.extract_text(text, model=self.model_id)
+        return self._facts_from_claims(asset, event_id, text, claims)
+
+    def _facts_from_claims(self, asset, event_id, text, claims) -> list[FactRecord]:
+        """Turn model claims into FactRecords, locating each verbatim quote in
+        the source text to compute a real character span (provenance)."""
+        facts: list[FactRecord] = []
+        cursor = 0
+        for i, c in enumerate(claims):
+            start, end = _find_fuzzy(text, c.quote, cursor)
+            if start < 0:
+                start = end = None       # quote not found; keep it for display
+                quote = c.quote
+            else:
+                quote = text[start:end]
+                cursor = end
+            facts.append(
+                FactRecord(
+                    fact_id=make_fact_id(event_id, asset.asset_id, c.predicate, i),
+                    event_id=event_id,
+                    phase=c.phase,
+                    claim=Claim(
+                        subject=c.subject, predicate=c.predicate,
+                        value=c.value, unit=c.unit,
+                    ),
+                    source=SourceRef(
+                        asset_id=asset.asset_id,
+                        locator=Locator(
+                            selector_type=SelectorType.TEXT_SPAN,
+                            start=start, end=end, quote=quote,
+                        ),
+                    ),
+                    extraction=self._provenance(confidence=c.confidence),
+                    tags=list(c.tags),
+                )
+            )
+        return facts
